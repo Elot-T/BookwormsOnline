@@ -61,7 +61,7 @@ namespace BookwormsOnline.Controllers
                     var isValidRecaptcha = await VerifyRecaptchaAsync(gRecaptchaResponse);
                     if (!isValidRecaptcha.Item1)
                     {
-                        _logger.LogWarning("reCAPTCHA verification failed. Response: {0}, Score: {1}", gRecaptchaResponse, isValidRecaptcha.Item2);
+                    
                         ModelState.AddModelError("", "reCAPTCHA verification failed. Please try again.");
                         return View(model);
                     }
@@ -71,11 +71,11 @@ namespace BookwormsOnline.Controllers
                     bool emailExists = _context.Users.Any(u => u.Email == model.Email);
                     if (emailExists)
                     {
-                        _logger.LogWarning("Email {0} is already registered.", model.Email);
+                       
                         ModelState.AddModelError("Email", "Email is already registered.");
                         return View(model);
                     }
-                    _logger.LogInformation("Email {0} is available for registration.", model.Email);
+                  
 
                     // Hash the user's password before saving it to the database
                     var hashedPassword = _passwordHasher.HashPassword(model, model.Password);
@@ -105,7 +105,7 @@ namespace BookwormsOnline.Controllers
                         // Add the user to the database
                         _context.Users.Add(model);
                         await _context.SaveChangesAsync();
-                        _logger.LogInformation("User with email {0} registered successfully.", model.Email);
+                       
 
                         TempData["SuccessMessage"] = "Registration successful!";
                         return RedirectToAction("Login");
@@ -122,7 +122,7 @@ namespace BookwormsOnline.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred during registration for user {0}.", model.Email);
+              
                 ModelState.AddModelError("", "An error occurred. Please try again.");
             }
 
@@ -222,7 +222,7 @@ namespace BookwormsOnline.Controllers
                 return RedirectToAction("Dashboard", "Users");
             }
 
-            _logger.LogWarning($"Failed login attempt for user {sanitizedEmail}");
+            
             ModelState.AddModelError("", "Invalid email or password.");
             return View();
         }
