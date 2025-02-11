@@ -19,13 +19,13 @@ namespace BookwormsOnline.Controllers
             switch (statusCode)
             {
                 case 404:
-                    _logger.LogWarning("404 Not Found: {Path}", HttpContext.Request.Path);
+                   
                     return View("NotFound");
                 case 403:
-                    _logger.LogWarning("403 Forbidden: {Path}", HttpContext.Request.Path);
+                  
                     return View("Forbidden");
                 default:
-                    _logger.LogWarning("Unexpected status code: {StatusCode}", statusCode);
+                 
                     return View("Error");
             }
         }
@@ -34,7 +34,7 @@ namespace BookwormsOnline.Controllers
         [Route("Error/500")]
         public IActionResult ServerError()
         {
-            _logger.LogError("500 Internal Server Error: {Path}", HttpContext.Request.Path);
+         
             return View("Error");
         }
 

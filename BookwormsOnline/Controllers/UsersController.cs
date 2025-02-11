@@ -145,21 +145,21 @@ namespace BookwormsOnline.Controllers
             if (string.IsNullOrEmpty(sanitizedEmail) || !IsValidEmail(sanitizedEmail))
             {
                 ModelState.AddModelError("email", "Please enter a valid email address.");
-                _logger.LogWarning($"Login attempt with invalid email format: {email}");
+               
                 return View();
             }
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == sanitizedEmail);
             if (user == null)
             {
-                _logger.LogWarning($"Invalid login attempt for email: {sanitizedEmail}");
+               
                 ModelState.AddModelError("", "Invalid email or password.");
                 return View();
             }
 
             if (user.PasswordLastChanged.AddDays(30) < DateTime.UtcNow)
             {
-                _logger.LogInformation($"User {user.Email} login attempt blocked due to expired password.");
+             
                 TempData["ErrorMessage"] = "Your password has expired. Please reset your password.";
                 return RedirectToAction("ForgotPassword", "Users");
             }
@@ -168,7 +168,7 @@ namespace BookwormsOnline.Controllers
             if (passwordVerificationResult == PasswordVerificationResult.Success)
             {
                 // Log successful authentication attempt
-                _logger.LogInformation($"User {user.Email} successfully authenticated.");
+              
                 await InvalidateUserSessions(user.Id);
 
                 var newSession = new UserSession
@@ -346,7 +346,7 @@ namespace BookwormsOnline.Controllers
                 if (model.NewPassword != model.NewConfirmPassword)
                 {
                     TempData["ErrorMessage"] = "The new password and confirmation password do not match.";
-                    _logger.LogWarning("Passwords do not match for token: {Token}", token);
+                   
                     return View(model);
                 }
 
@@ -355,7 +355,7 @@ namespace BookwormsOnline.Controllers
 
                 if (user == null)
                 {
-                    _logger.LogWarning("No user found for the provided token: {Token}", token);
+                    
                     TempData["ErrorMessage"] = "Invalid or expired token.";
                     return RedirectToAction("Login");
                 }
@@ -395,7 +395,7 @@ namespace BookwormsOnline.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred in ResetPassword for token: {Token}", token);
+               
                 TempData["ErrorMessage"] = "An error occurred while resetting your password. Please try again.";
                 return View(model);
             }
