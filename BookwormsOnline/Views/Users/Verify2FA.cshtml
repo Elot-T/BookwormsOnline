@@ -1,0 +1,11 @@
+﻿@model string
+
+<h2>Two-Factor Authentication</h2>
+
+<form method="post">
+    <div>
+        <label for="code">Enter 2FA Code:</label>
+        <input type="text" id="code" name="code" required maxlength="6" />
+    </div>
+    <button type="submit">Verify</button>
+</form>

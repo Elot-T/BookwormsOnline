@@ -1,0 +1,156 @@
+﻿@model BookwormsOnline.Models.User
+
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Register" method="post" enctype="multipart/form-data" id="registerForm">
+    <div class="form-group">
+        <label asp-for="FirstName"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="LastName"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="CreditCardNo"></label>
+        <input asp-for="CreditCardNo" class="form-control" />
+        <span asp-validation-for="CreditCardNo" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="MobileNo"></label>
+        <input asp-for="MobileNo" class="form-control" />
+        <span asp-validation-for="MobileNo" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="BillingAddress"></label>
+        <input asp-for="BillingAddress" class="form-control" />
+        <span asp-validation-for="BillingAddress" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ShippingAddress"></label>
+        <input asp-for="ShippingAddress" class="form-control" />
+        <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+
+    <div class="form-group">
+        <label asp-for="UploadedFile"></label>
+        <input type="file" name="UploadedFile" class="form-control" accept=".docx,.pdf,.jpg" />
+        <span asp-validation-for="UploadedFile" class="text-danger"></span>
+    </div>
+   
+
+    <div class="form-group">
+        <label asp-for="Password"></label>
+        <input asp-for="Password" class="form-control" type="password" id="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+        <div id="passwordFeedback" class="text-info"></div>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="ConfirmPassword"></label>
+        <input asp-for="ConfirmPassword" class="form-control" type="password" id="confirmPassword" />
+        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary" id="registerButton" disabled>Register</button>
+
+    <!-- Hidden input for reCAPTCHA token -->
+    <input type="hidden" id="recaptchaToken" name="gRecaptchaResponse" />
+</form>
+
+@section Scripts {
+    <script src="https://www.google.com/recaptcha/api.js?render=6LdNZbYqAAAAAE7JZjevZirMQcRDMZLnAZCk7skK"></script>
+
+    <script>
+                           document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('registerForm');
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirmPassword');
+            const registerButton = document.getElementById('registerButton');
+            const feedback = document.getElementById('passwordFeedback');
+
+            const validatePassword = () => {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+
+                // Password validation requirements
+                const requirements = [
+                    { regex: /.{12,}/, message: "At least 12 characters long." },
+                    { regex: /[a-z]/, message: "Contains a lowercase letter." },
+                    { regex: /[A-Z]/, message: "Contains an uppercase letter." },
+                    { regex: /[0-9]/, message: "Contains a number." },
+                    { regex: /[\W_]/, message: "Contains a special character." }
+                ];
+
+                const unmet = requirements.filter(r => !r.regex.test(password));
+
+                // Display feedback for unmet requirements
+                if (unmet.length === 0) {
+                    feedback.textContent = "Strong password!";
+                    feedback.style.color = "green";
+                } else {
+                    feedback.innerHTML = "Password must meet the following requirements:<ul>" +
+                        unmet.map(r => `<li>${r.message}</li>`).join("") +
+                        "</ul>";
+                    feedback.style.color = "red";
+                }
+
+                // Check if the password and confirm password match
+                if (password === confirmPassword && confirmPassword.length > 0 && unmet.length === 0) {
+                    grecaptcha.ready(function() {
+                        grecaptcha.execute('6LdNZbYqAAAAAE7JZjevZirMQcRDMZLnAZCk7skK', { action: 'register' }).then(function(token) {
+                            document.getElementById('recaptchaToken').value = token;
+                            registerButton.disabled = false;
+                        });
+                    });
+                } else {
+                    registerButton.disabled = true;
+                }
+            };
+
+            passwordInput.addEventListener('input', validatePassword);
+            confirmPasswordInput.addEventListener('input', validatePassword);
+
+            form.addEventListener('submit', function (e) {
+                if (registerButton.disabled) {
+                    e.preventDefault();
+                    return;
+                }
+
+                grecaptcha.ready(function() {
+                    grecaptcha.execute('6LdNZbYqAAAAAE7JZjevZirMQcRDMZLnAZCk7skK', { action: 'register' })
+                        .then(function(token) {
+                            document.getElementById('recaptchaToken').value = token;
+                            form.submit();
+                        })
+                        .catch(function(error) {
+                            console.error("reCAPTCHA error:", error);
+                            alert("Unable to verify reCAPTCHA. Please try again.");
+                        });
+                });
+
+                e.preventDefault();
+            });
+        });
+
+
+    </script>
+}

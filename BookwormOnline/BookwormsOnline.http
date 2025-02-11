@@ -1,0 +1,5 @@
+﻿@BookwormsOnline_HostAddress = https://localhost:7284
+
+GET {{BookwormsOnline_HostAddress}}/users/all
+
+###

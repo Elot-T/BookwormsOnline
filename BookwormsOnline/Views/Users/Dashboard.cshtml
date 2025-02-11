@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+    var userName = ViewData["UserName"] as string;
+    var userEmail = ViewData["UserEmail"] as string;
+    var userId = ViewData["UserId"];
+}
+
+<h1>Welcome to your Dashboard, @userName!</h1>
+<p>This is your user dashboard. Customize this page as needed.</p>
+
+@if (!string.IsNullOrEmpty(userEmail))
+{
+    <p><strong>Email:</strong> @userEmail</p>
+}
+
+<!-- You can display other details as needed -->
+<a asp-action="Logout" asp-controller="Users" class="btn btn-primary">Logout</a>

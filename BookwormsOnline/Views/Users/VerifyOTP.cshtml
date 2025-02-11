@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "Verify OTP";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<form asp-action="VerifyOTP" method="post">
+    <input type="hidden" name="email" value="@ViewBag.Email" />
+    <div class="form-group">
+        <label for="enteredOTP">Enter OTP</label>
+        <input type="text" id="enteredOTP" name="enteredOTP" class="form-control" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Verify OTP</button>
+</form>
+
+@if (ViewData.ModelState != null && !ViewData.ModelState.IsValid)
+{
+    <div class="text-danger">
+        @Html.ValidationSummary(true)
+    </div>
+}

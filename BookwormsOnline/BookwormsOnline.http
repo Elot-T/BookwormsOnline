@@ -1,0 +1,78 @@
+﻿@BookwormsOnline_HostAddress = https://localhost:7228
+
+POST https://localhost:7228/users/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "creditCardNo": "4111111111111111",
+  "mobileNo": "+1234567890",
+  "billingAddress": "123 Main St",
+  "shippingAddress": "456 Another St",
+  "email": "john.doe@example.com",
+  "password": "password123",
+  "confirmPassword": "password123",
+  "photoPath": "/images/john_doe.jpg"
+}
+POST {{BookwormsOnline_HostAddress}}/users/register/{id}
+Content-Type: application/json
+
+{
+  //User
+}
+
+###
+
+POST {{BookwormsOnline_HostAddress}}/users/register/{id}
+Content-Type: application/json
+
+{
+ "firstName": "John",
+  "lastName": "Doe",
+  "creditCardNo": "4111111111111111",
+  "mobileNo": "+1234567890",
+  "billingAddress": "123 Main St",
+  "shippingAddress": "456 Another St",
+  "email": "john.doe@example.com",
+  "password": "password123",
+  "confirmPassword": "password123",
+  
+}
+
+###
+
+POST {{BookwormsOnline_HostAddress}}/users/register/{id}
+Content-Type: application/json
+
+{
+ "firstName": "John",
+  "lastName": "Doe",
+  "creditCardNo": "4111111111111111",
+  "mobileNo": "+1234567890",
+  "billingAddress": "123 Main St",
+  "shippingAddress": "456 Another St",
+  "email": "john.doe@example.com",
+  "password": "111111111111111aA!",
+  "confirmPassword": "111111111111111aA!"
+}
+
+###
+
+POST {{BookwormsOnline_HostAddress}}/users/register/{id}
+Content-Type: application/json
+
+{
+  "Id": 1,
+  "FirstName": "John",
+  "LastName": "Doe",
+  "CreditCardNo": "1234567812345678",
+  "MobileNo": "123-456-7890",
+  "BillingAddress": "123 Main St, Cityville, Country",
+  "ShippingAddress": "456 Another St, Cityville, Country",
+  "Email": "johndoe@example.com",
+  "Password": "StrongPassword123!",
+  "ConfirmPassword": "StrongPassword123!"
+}
+
+###
