@@ -199,12 +199,12 @@ namespace BookwormsOnline.Controllers
 
                 if (activeSessions.Any())
                 {
-                    _logger.LogWarning($"User {user.Email} has {activeSessions.Count} active sessions.");
+                  
 
                     TempData["WarningMessage"] = $"Active sessions detected on {activeSessions.Count} devices.";
 
                     // Uncomment to enforce single-session login
-                    _logger.LogInformation($"Invalidating all previous sessions for user {user.Email}");
+                 
                     foreach (var session in activeSessions) session.IsActive = false;
                 }
 
@@ -216,7 +216,7 @@ namespace BookwormsOnline.Controllers
                 HttpContext.Session.SetString("UserName", user.FirstName);
                 HttpContext.Session.SetString("CurrentSessionId", newSession.SessionId);
 
-                _logger.LogInformation($"User {user.Email} logged in successfully from IP: {newSession.IpAddress}, Device: {newSession.DeviceInfo}");
+            
 
                 TempData["SuccessMessage"] = "Login successful!";
                 return RedirectToAction("Dashboard", "Users");
@@ -360,14 +360,14 @@ namespace BookwormsOnline.Controllers
                     return RedirectToAction("Login");
                 }
 
-                _logger.LogInformation("User with ID {UserId} found. Proceeding to update password.", user.Id);
+            
 
                 // Check if the new password matches the last two passwords
                 if (_passwordHasher.VerifyHashedPassword(user, user.PreviousPasswordHash1, model.NewPassword) == PasswordVerificationResult.Success ||
                     _passwordHasher.VerifyHashedPassword(user, user.PreviousPasswordHash2, model.NewPassword) == PasswordVerificationResult.Success)
                 {
                     TempData["ErrorMessage"] = "The new password cannot be the same as any of your last two passwords.";
-                    _logger.LogWarning("User tried to reuse an old password for user ID: {UserId}", user.Id);
+                   
                     return View(model);
                 }
 
@@ -388,7 +388,7 @@ namespace BookwormsOnline.Controllers
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Password updated successfully for user with ID: {UserId}", user.Id);
+                
 
                 TempData["SuccessMessage"] = "Your password has been reset successfully.";
                 return RedirectToAction("Login");
