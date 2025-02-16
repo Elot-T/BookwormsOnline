@@ -104,7 +104,7 @@ namespace BookwormsOnline.Models
         public DateTime PasswordLastChanged { get; set; } = DateTime.UtcNow; // Default to current time
         public DateTime? PasswordExpires { get; set; } // Nullable for accounts without expiry policy
 
-        public string TwoFactorOTP { get; set; }
+        public string? TwoFactorOTP { get; set; }
         public DateTime? OTPExpiry { get; set; }
 
 

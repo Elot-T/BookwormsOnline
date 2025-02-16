@@ -94,6 +94,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 app.UseMiddleware<SessionValidationMiddleware>();
 
+
 // Existing routes
 app.MapControllerRoute(
     name: "default",

@@ -14,6 +14,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace BookwormsOnline.Controllers
 {
@@ -174,14 +175,16 @@ namespace BookwormsOnline.Controllers
                 var newSession = new UserSession
                 {
                     UserId = user.Id,
-                    SessionId = Guid.NewGuid().ToString(), // Directly use this as the token
+                    SessionId = Guid.NewGuid().ToString(),
                     DeviceInfo = Request.Headers["User-Agent"].ToString(),
                     IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
                     LoginTime = DateTime.UtcNow,
                     LastActivityTime = DateTime.UtcNow,
-                    SessionExpiryTime = DateTime.UtcNow.AddMinutes(30),
+                    SessionExpiryTime = DateTime.UtcNow.AddMinutes(1), // 1 minute for testing
                     IsActive = true
                 };
+
+                _logger.LogInformation($"New session created for {user.Email} - Expires at {newSession.SessionExpiryTime}");
 
                 // Store session ID in cookie
                 Response.Cookies.Append("SessionToken", newSession.SessionId, new CookieOptions
@@ -245,23 +248,64 @@ namespace BookwormsOnline.Controllers
         public async Task<IActionResult> CheckSession()
         {
             var sessionToken = Request.Cookies["SessionToken"];
+            _logger.LogInformation($"Checking session validity for token: {sessionToken}");
 
             if (string.IsNullOrEmpty(sessionToken))
             {
-                return Json(new { isActive = false, message = "No session found" });
+                _logger.LogWarning("No active session token found - Forcing logout");
+
+                // Clear any residual session data
+                HttpContext.Session.Clear();
+                Response.Cookies.Delete("SessionToken");
+
+                return Json(new
+                {
+                    isActive = false,
+                    forceLogout = true,  // New flag
+                    message = "Session expired. Please login again."
+                });
             }
 
-            var session = await _context.UserSessions
-                .FirstOrDefaultAsync(s => s.SessionId == sessionToken && s.SessionExpiryTime > DateTime.UtcNow);
 
-            if (session == null || !session.IsActive)
+            var session = await _context.UserSessions
+                .FirstOrDefaultAsync(s => s.SessionId == sessionToken);
+
+            if (session == null)
             {
+                _logger.LogWarning($"Invalid session token: {sessionToken}");
+                return Json(new { isActive = false, message = "Invalid session" });
+            }
+
+            // Log session details
+            _logger.LogInformation($"Session Status - Active: {session.IsActive}, Expires: {session.SessionExpiryTime}, Last Active: {session.LastActivityTime}");
+
+            // Check for manual deactivation
+            if (!session.IsActive)
+            {
+                _logger.LogWarning($"Session terminated manually: {sessionToken}");
+                return Json(new { isActive = false, message = "Session terminated" });
+            }
+
+            // Check absolute expiry
+            if (DateTime.UtcNow > session.SessionExpiryTime)
+            {
+                _logger.LogWarning($"Session hard expired at {session.SessionExpiryTime}");
                 return Json(new { isActive = false, message = "Session expired" });
             }
 
+            // Check inactivity (1 minute for testing)
+            var maxInactivity = TimeSpan.FromMinutes(1);
+            if (DateTime.UtcNow - session.LastActivityTime > maxInactivity)
+            {
+                _logger.LogWarning($"Session inactive for >1 minute. Last activity: {session.LastActivityTime}");
+                session.IsActive = false;
+                await _context.SaveChangesAsync();
+                return Json(new { isActive = false, message = "Inactivity logout" });
+            }
+
+            _logger.LogInformation("Session valid and active");
             return Json(new { isActive = true });
         }
-
 
         // Dashboard method with session validation
         public IActionResult Dashboard()
@@ -444,15 +488,40 @@ namespace BookwormsOnline.Controllers
             return View(); // You might want to redirect to a specific view or return a JSON response
         }
         // Logout method
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
+            var sessionToken = Request.Cookies["SessionToken"];
+
+            if (!string.IsNullOrEmpty(sessionToken))
+            {
+                // Server-side cleanup
+                var session = await _context.UserSessions
+                    .FirstOrDefaultAsync(s => s.SessionId == sessionToken);
+
+                if (session != null)
+                {
+                    session.IsActive = false;
+                    session.SessionExpiryTime = DateTime.UtcNow;
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Session {sessionToken} invalidated in database");
+                }
+            }
+
+            // Client-side cleanup
             HttpContext.Session.Clear();
-            TempData["SuccessMessage"] = "You have been logged out successfully.";
+            Response.Cookies.Delete("SessionToken", new CookieOptions
+            {
+                Path = "/Users/Login",
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            });
+
+            _logger.LogInformation("User logged out successfully");
+            TempData["SuccessMessage"] = "You have been securely logged out.";
             return RedirectToAction("Login");
         }
-
         // Helper method for password strength validation
-      
+
         private bool IsValidEmail(string email)
         {
             var emailRegex = new Regex(@"^[^@\s]+@[^@\s]+\.[^@\s]+$");
@@ -484,6 +553,35 @@ namespace BookwormsOnline.Controllers
                 return new Tuple<bool, float>(result.Success, result.Score);
             }
         }
+
+        public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+        {
+            var sessionToken = context.HttpContext.Request.Cookies["SessionToken"];
+            if (!string.IsNullOrEmpty(sessionToken))
+            {
+                var session = await _context.UserSessions
+                    .FirstOrDefaultAsync(s => s.SessionId == sessionToken);
+
+                if (session != null)
+                {
+                    // Update activity timestamps
+                    var previousLastActive = session.LastActivityTime;
+                    session.LastActivityTime = DateTime.UtcNow;
+                    session.SessionExpiryTime = DateTime.UtcNow.AddMinutes(1); // Test timeout
+
+                    _logger.LogInformation($"Updated session activity - Previous: {previousLastActive} | New: {session.LastActivityTime}");
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    _logger.LogWarning($"Orphaned session cookie detected: {sessionToken}");
+                }
+            }
+
+            await next();
+        }
+
+
 
         public static string GenerateOTP(int length = 6)
         {

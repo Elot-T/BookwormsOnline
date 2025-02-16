@@ -80,7 +80,7 @@
     <script src="https://www.google.com/recaptcha/api.js?render=6LdNZbYqAAAAAE7JZjevZirMQcRDMZLnAZCk7skK"></script>
 
     <script>
-                           document.addEventListener('DOMContentLoaded', function () {
+                    document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('registerForm');
             const passwordInput = document.getElementById('password');
             const confirmPasswordInput = document.getElementById('confirmPassword');
@@ -102,7 +102,6 @@
 
                 const unmet = requirements.filter(r => !r.regex.test(password));
 
-                // Display feedback for unmet requirements
                 if (unmet.length === 0) {
                     feedback.textContent = "Strong password!";
                     feedback.style.color = "green";
@@ -113,12 +112,15 @@
                     feedback.style.color = "red";
                 }
 
-                // Check if the password and confirm password match
                 if (password === confirmPassword && confirmPassword.length > 0 && unmet.length === 0) {
+                    console.log("Password validated. Proceeding to reCAPTCHA..."); // Log password validation success
                     grecaptcha.ready(function() {
                         grecaptcha.execute('6LdNZbYqAAAAAE7JZjevZirMQcRDMZLnAZCk7skK', { action: 'register' }).then(function(token) {
+                            console.log("reCAPTCHA token received:", token); // Log reCAPTCHA token
                             document.getElementById('recaptchaToken').value = token;
                             registerButton.disabled = false;
+                        }).catch(function(error) {
+                            console.error("reCAPTCHA error:", error);
                         });
                     });
                 } else {
@@ -131,18 +133,21 @@
 
             form.addEventListener('submit', function (e) {
                 if (registerButton.disabled) {
+                    console.log("Form submission blocked due to validation failure.");
                     e.preventDefault();
                     return;
                 }
 
+                console.log("Submitting form...");
                 grecaptcha.ready(function() {
                     grecaptcha.execute('6LdNZbYqAAAAAE7JZjevZirMQcRDMZLnAZCk7skK', { action: 'register' })
                         .then(function(token) {
+                            console.log("Final reCAPTCHA token before submission:", token);
                             document.getElementById('recaptchaToken').value = token;
                             form.submit();
                         })
                         .catch(function(error) {
-                            console.error("reCAPTCHA error:", error);
+                            console.error("reCAPTCHA error before form submission:", error);
                             alert("Unable to verify reCAPTCHA. Please try again.");
                         });
                 });
