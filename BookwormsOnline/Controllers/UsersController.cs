@@ -248,7 +248,7 @@ namespace BookwormsOnline.Controllers
         public async Task<IActionResult> CheckSession()
         {
             var sessionToken = Request.Cookies["SessionToken"];
-            _logger.LogInformation($"Checking session validity for token: {sessionToken}");
+           
 
             if (string.IsNullOrEmpty(sessionToken))
             {
@@ -272,7 +272,7 @@ namespace BookwormsOnline.Controllers
 
             if (session == null)
             {
-                _logger.LogWarning($"Invalid session token: {sessionToken}");
+             
                 return Json(new { isActive = false, message = "Invalid session" });
             }
 
@@ -282,7 +282,7 @@ namespace BookwormsOnline.Controllers
             // Check for manual deactivation
             if (!session.IsActive)
             {
-                _logger.LogWarning($"Session terminated manually: {sessionToken}");
+                
                 return Json(new { isActive = false, message = "Session terminated" });
             }
 
@@ -503,7 +503,7 @@ namespace BookwormsOnline.Controllers
                     session.IsActive = false;
                     session.SessionExpiryTime = DateTime.UtcNow;
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation($"Session {sessionToken} invalidated in database");
+                    
                 }
             }
 
@@ -572,10 +572,7 @@ namespace BookwormsOnline.Controllers
                     _logger.LogInformation($"Updated session activity - Previous: {previousLastActive} | New: {session.LastActivityTime}");
                     await _context.SaveChangesAsync();
                 }
-                else
-                {
-                    _logger.LogWarning($"Orphaned session cookie detected: {sessionToken}");
-                }
+
             }
 
             await next();
